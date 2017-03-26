@@ -37,6 +37,7 @@ public class StartActivity extends AppCompatActivity {
         logInButton.setOnClickListener(new View.OnClickListener(){
             public void onClick(View view){
                 Intent intent = new Intent(StartActivity.this, MapsActivity.class);
+                //Intent intent = new Intent(StartActivity.this, RouteListActivity.class);
                 startActivity(intent);
             }
         });
