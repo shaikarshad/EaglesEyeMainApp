@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="routes">
+        <item>Discovery Park</item>
+        <item>Bernard Street</item>
+        <item>Centre Place</item>
+        <item>Mean Green</item>
+        <item>North Texan</item>
+        <item>Sam Bass</item>
+        <item>Eagle Point</item>
+        <item>Colorado Express</item>
+        <item>Camp Cruiser</item>
+    </string-array>
+</resources>
