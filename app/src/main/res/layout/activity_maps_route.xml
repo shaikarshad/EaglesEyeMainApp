@@ -23,4 +23,15 @@
         android:id="@+id/button_nearby"
         android:onClick="showNearest" />
 
+    <TextView
+        android:text="TextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:id="@+id/show_distance_time"
+        android:layout_alignRight="@+id/button_nearby"
+        android:layout_alignEnd="@+id/button_nearby" />
+
 </RelativeLayout>

@@ -1,15 +1,24 @@
 package com.base.ours.eagleseyemainapp;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -17,7 +26,9 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.base.ours.eagleseyemainapp.POJO.Example;
 
 import org.json.JSONObject;
 
@@ -31,14 +42,26 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCallback {
+import retrofit.Call;
+import retrofit.Callback;
+import retrofit.GsonConverterFactory;
+import retrofit.Response;
+import retrofit.Retrofit;
+
+public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private GoogleMap mMap;
+    TextView ShowDistanceDuration;
+    Polyline line;
+    private GoogleApiClient mLocationClient;
+    private Bundle mBundle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mBundle = savedInstanceState;
         setContentView(R.layout.activity_maps_route);
+        ShowDistanceDuration = (TextView) findViewById(R.id.show_distance_time);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.routeMap);
@@ -74,11 +97,15 @@ public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCal
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
+        mLocationClient = new GoogleApiClient.Builder(this)
+                .addApi(LocationServices.API).addConnectionCallbacks(this).addOnConnectionFailedListener(this)
+                .build();
+        mLocationClient.connect();
         mMap.setMyLocationEnabled(true);
     }
 
     private void drawRoute() {
-        PolylineOptions polyLine=new PolylineOptions()
+        PolylineOptions polyLine = new PolylineOptions()
                 .add(new LatLng(33.251914, -97.154415))
                 .add(new LatLng(33.248471, -97.147902))
                 .add(new LatLng(33.248966, -97.147697))
@@ -97,10 +124,11 @@ public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCal
                 .add(new LatLng(33.213709, -97.152900))
                 .add(new LatLng(33.213681, -97.148441))
                 .add(new LatLng(33.215706, -97.148411))
-                .add(new LatLng(33.215819, -97.161374))
-                ;
+                .add(new LatLng(33.215819, -97.161374));
         mMap.addPolyline(polyLine);
     }
+
+    /*
 
     public void showNearest(View v) {
         LatLng origin = new LatLng(33.207513, -97.152730);
@@ -193,7 +221,7 @@ public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCal
 
     /**
      * A class to parse the Google Places in JSON format
-     */
+     */ /*
     private class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<String, String>>>> {
 
         // Parsing the data in non-ui thread
@@ -263,5 +291,122 @@ public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCal
             }
         }
     }
+    */
 
+    public void showNearest(View v) {
+        //LatLng origin = new LatLng(33.207513, -97.152730);
+        //LatLng dest = new LatLng(33.215819, -97.161374);
+
+        String url = "https://maps.googleapis.com/maps/";
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(url)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        RetrofitMaps service = retrofit.create(RetrofitMaps.class);
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        Location currentLocation = LocationServices.FusedLocationApi.getLastLocation(mLocationClient);
+        final int shortstDist;
+        boolean shortstDistanceSet = false;
+        for (final BusStops BsStp : BusStops.values()) {
+            LatLng origin = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+            LatLng dest = new LatLng(BsStp.getBsLat(), BsStp.getBsLon());
+            Call<Example> call = service.getDistanceDuration("metric", origin.latitude + "," + origin.longitude, dest.latitude + "," + dest.longitude, "walking");
+
+            call.enqueue(new Callback<Example>() {
+                @Override
+                public void onResponse(Response<Example> response, Retrofit retrofit) {
+                    try {
+                        //Remove previous line from map
+                        if (line != null) {
+                            line.remove();
+                        }
+                        //Log.d("response received",response.body().toString());
+                        Log.d("Performing retrfit for:", BsStp.getName());
+                        // This loop will go through all the results and add marker on each location.
+                        for (int i = 0; i < response.body().getRoutes().size(); i++) {
+                            String distance = response.body().getRoutes().get(i).getLegs().get(i).getDistance().getText();
+                            String time = response.body().getRoutes().get(i).getLegs().get(i).getDuration().getText();
+                            ShowDistanceDuration.setText("Distance:" + distance + ", Duration:" + time);
+                            String encodedString = response.body().getRoutes().get(0).getOverviewPolyline().getPoints();
+                            List<LatLng> list = decodePoly(encodedString);
+                            line = mMap.addPolyline(new PolylineOptions()
+                                    .addAll(list)
+                                    .width(20)
+                                    .color(Color.RED)
+                                    .geodesic(true)
+                            );
+
+                        }
+                    } catch (Exception e) {
+                        Log.d("onResponse", "There is an error");
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onFailure(Throwable t) {
+                    Log.d("onFailure", t.toString());
+                }
+            });
+        }
+    }
+
+    private List<LatLng> decodePoly(String encoded) {
+        List<LatLng> poly = new ArrayList<LatLng>();
+        int index = 0, len = encoded.length();
+        int lat = 0, lng = 0;
+
+        while (index < len) {
+            int b, shift = 0, result = 0;
+            do {
+                b = encoded.charAt(index++) - 63;
+                result |= (b & 0x1f) << shift;
+                shift += 5;
+            } while (b >= 0x20);
+            int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+            lat += dlat;
+
+            shift = 0;
+            result = 0;
+            do {
+                b = encoded.charAt(index++) - 63;
+                result |= (b & 0x1f) << shift;
+                shift += 5;
+            } while (b >= 0x20);
+            int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+            lng += dlng;
+
+            LatLng p = new LatLng((((double) lat / 1E5)),
+                    (((double) lng / 1E5)));
+            poly.add(p);
+        }
+
+        return poly;
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
 }
