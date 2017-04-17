@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.base.ours.eagleseyemainapp.CommentsActivity">
+
+    <ListView
+        android:id="@+id/mobile_list"
+        android:layout_width="match_parent"
+        android:layout_height="516dp"></ListView>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <Button
+            android:id="@+id/button5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Button"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true" />
+
+        <EditText
+            android:id="@+id/editText2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:ems="10"
+            android:inputType="textPersonName"
+            android:text="Name"
+            android:layout_alignParentTop="true"
+            android:layout_toLeftOf="@+id/button5"
+            android:layout_toStartOf="@+id/button5" />
+    </RelativeLayout>
+
+</LinearLayout>
