@@ -33,6 +33,7 @@ public class StartActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
+        //connectWebSocket();
         Button logInButton= (Button) findViewById(R.id.logInButton);
         logInButton.setOnClickListener(new View.OnClickListener(){
             public void onClick(View view){

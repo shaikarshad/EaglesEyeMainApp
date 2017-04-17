@@ -1,7 +1,9 @@
 package com.base.ours.eagleseyemainapp;
 
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
@@ -14,6 +16,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -21,9 +24,13 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.maps.model.Polyline;
@@ -42,19 +49,102 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import static com.base.ours.eagleseyemainapp.ClientConnection.sendMessage;
 import retrofit.Call;
 import retrofit.Callback;
 import retrofit.GsonConverterFactory;
 import retrofit.Response;
 import retrofit.Retrofit;
 
-public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCallback, OnMarkerClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private GoogleMap mMap;
     TextView ShowDistanceDuration;
     Polyline line;
     private GoogleApiClient mLocationClient;
     private Bundle mBundle;
+    private HashMap<String, String> bus_location = new HashMap<String, String>(); //<route\tid,lat\tlong>
+    private HashMap<String, Integer> bus_fullstatus = new HashMap<String, Integer>(); //<route\tid,int>
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(mReceiver, new IntentFilter("CUSTOM_INTENT"));
+    }
+
+    protected void putBusMarkers() {
+        for (String s : bus_location.keySet()) {
+            String title = s.replace("\t", " ");
+            String split[] = bus_location.get(s).split("\t");
+            Integer fullStatus = bus_fullstatus.get(s);
+
+            LatLng center = new LatLng(Double.parseDouble(split[0]), Double.parseDouble(split[1]));
+            //mMap.addMarker(new MarkerOptions().position(discPark).title("Discovery Park"));
+            BitmapDescriptor icon;
+            if (fullStatus < 3)
+                icon = BitmapDescriptorFactory.fromResource(R.drawable.green_bus_2);
+            else
+                icon = BitmapDescriptorFactory.fromResource(R.drawable.red_bus_2);
+
+            mMap.addMarker(new MarkerOptions().position(center).title("title").icon(icon));
+        }
+    }
+
+    BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            //System.out.println("hi");
+            //Toast.makeText(MapsRouteActivity.this, "hi", Toast.LENGTH_SHORT).show();
+
+            if (intent.hasExtra("bus")) {//bus send lat and long: "bus" \t route \t ID \t Lat \t Long \t FullStatus \t CommentReset
+                String msg = intent.getStringExtra("bus");
+                String[] split = msg.split("\t");
+                String route = split[1];
+                String id = split[2];
+                String lat = split[3];
+                String longi = split[4];
+                int fullStatus = Integer.parseInt(split[5]); //integer number
+                String commentReset = split[6]; //0 or 1
+                bus_location.put(route + "\t" + id, lat + "\t" + longi);
+                bus_fullstatus.put(route + "\t" + id, fullStatus);
+
+                //Toast.makeText(MapsRouteActivity.this, msg, Toast.LENGTH_SHORT).show();
+                //System.out.println(msg);
+
+                putBusMarkers();
+                //mMap.addMarker(new MarkerOptions().position(new LatLng(Double.parseDouble(lat), Double.parseDouble(longi))).title("Hello world"));
+            }
+            if (intent.hasExtra("comment")) {//comment reply: "comment" \t Route BusID \t CommentID \t comment(UserID Comment)
+                String msg = intent.getStringExtra("comment");
+                Intent intent_new = new Intent(MapsRouteActivity.this, CommentsActivity.class);
+                intent_new.putExtra("comment", msg);
+                //Intent intent = new Intent(StartActivity.this, RouteListActivity.class);
+                startActivity(intent);
+
+                String[] split = msg.split("\t");
+                String routeID = split[1];
+                int commentID = Integer.parseInt(split[2]);
+                String comment = split[3];
+            }
+        }
+    };
+
+    @Override
+    public boolean onMarkerClick(final Marker marker) {
+
+        String routeID = marker.getTitle();
+
+        //comments request by user: "comment request" \t Route BusID \t userID
+        sendMessage("comment request\tmarker.getTitle()\tuserID");
+
+        Toast.makeText(MapsRouteActivity.this, marker.getTitle(), Toast.LENGTH_SHORT).show();
+        //Intent intent = new Intent(MapsRouteActivity.this, CommentsActivity.class);
+        //intent.putExtra("comment","hi\thello\tabc\thello123");
+        //Intent intent = new Intent(StartActivity.this, RouteListActivity.class);
+        //startActivity(intent);
+
+        return true;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,9 +172,15 @@ public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCal
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
+        sendMessage("register\tUserID\tDiscveryPark");
+
+        mMap.setOnMarkerClickListener(this);
+
         // Keeping discovery park as default location
         LatLng center = new LatLng(33.234853, -97.155472/*33.234278, -97.149120*/);
         //mMap.addMarker(new MarkerOptions().position(discPark).title("Discovery Park"));
+        //BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.green_bus_2);
+        //mMap.addMarker(new MarkerOptions().position(center).title("Discovery Park").icon(icon));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(center));
         drawRoute();
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -408,5 +504,11 @@ public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCal
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
+    }
+
+    public void getBusSchedule(View v) {
+        Intent it = new Intent(MapsRouteActivity.this, actual_tab.class);
+
+        startActivity(it);
     }
 }
