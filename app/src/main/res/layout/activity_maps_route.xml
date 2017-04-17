@@ -39,13 +39,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignTop="@+id/button_nearby"
-        android:layout_toRightOf="@+id/button_nearby"
-        android:layout_marginLeft="11dp"
-        android:layout_marginStart="11dp"
         android:id="@+id/button_BusSchedule"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
-        android:onClick="getBusSchedule" />
+        android:onClick="getBusSchedule"
+        android:layout_toRightOf="@+id/button_nearby"
+        android:layout_toEndOf="@+id/button_nearby" />
 
 </RelativeLayout>

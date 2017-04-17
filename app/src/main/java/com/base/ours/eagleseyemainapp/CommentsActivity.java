@@ -6,6 +6,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -32,23 +33,30 @@ public class CommentsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_comments);
 
-        //comment reply: "comment" \t Route BusID \t CommentID \t comment(UserID Comment)
+        //comment reply: "comment" \t Route BusID \t CommentID \t comment(UserID\tComment)
         Intent intent = getIntent();
         String data = intent.getStringExtra("comment");
+        Log.d("Comment:", "received from server" + data);
         String[] split = data.split("\t");
+        Log.d("At line 40", "Hello");
 
         if (split.length > 1)
             routeId = split[1];
 
         int i = 2;
         while (i < split.length) {
-            String id = split[i++];
-            id = String.format("%-10s", id);
-            String comment = split[i++];
-            comments.add(id + ": " + comment);
+            String cid = split[i];
+            i++;
+            String uid = split[i];
+            i++;
+            uid = String.format("%-10s", uid);
+            String comment = split[i];
+            i++;
+            comments.add(uid + ": " + comment);
         }
 
         //comments.add("hi");
+        Log.d("At line 54", "Bye");
 
         ArrayAdapter adapter = new ArrayAdapter<String>(this, R.layout.activity_listview, comments);
 

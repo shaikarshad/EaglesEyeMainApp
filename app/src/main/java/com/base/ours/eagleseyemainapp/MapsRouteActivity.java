@@ -63,9 +63,11 @@ public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCal
     Polyline line;
     private GoogleApiClient mLocationClient;
     private Bundle mBundle;
+    private HashMap<String, Marker> bus_markers = new HashMap<String, Marker>(); //<route\tid,lat\tlong>
     private HashMap<String, String> bus_location = new HashMap<String, String>(); //<route\tid,lat\tlong>
     private HashMap<String, Integer> bus_fullstatus = new HashMap<String, Integer>(); //<route\tid,int>
 
+    //private Marker busMarker;
     @Override
     protected void onResume() {
         super.onResume();
@@ -77,16 +79,28 @@ public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCal
             String title = s.replace("\t", " ");
             String split[] = bus_location.get(s).split("\t");
             Integer fullStatus = bus_fullstatus.get(s);
+            Log.d("At line 81", fullStatus.toString());
 
-            LatLng center = new LatLng(Double.parseDouble(split[0]), Double.parseDouble(split[1]));
+            LatLng pos = new LatLng(Double.parseDouble(split[0]), Double.parseDouble(split[1]));
             //mMap.addMarker(new MarkerOptions().position(discPark).title("Discovery Park"));
             BitmapDescriptor icon;
-            if (fullStatus < 3)
+            if (fullStatus < 3) {
                 icon = BitmapDescriptorFactory.fromResource(R.drawable.green_bus_2);
-            else
+                Log.d("Green", "Green");
+            } else {
                 icon = BitmapDescriptorFactory.fromResource(R.drawable.red_bus_2);
+                Log.d("Red", "Red");
+            }
 
-            mMap.addMarker(new MarkerOptions().position(center).title("title").icon(icon));
+            if (bus_markers.containsKey(s)) {
+                Marker busMarker = bus_markers.get(s);
+                Log.d("Inside Update", "");
+                busMarker.setIcon(icon);
+                busMarker.setPosition(pos);
+            } else {
+                Marker busMarker = mMap.addMarker(new MarkerOptions().position(pos).title(title).icon(icon));
+                bus_markers.put(s, busMarker);
+            }
         }
     }
 
@@ -119,12 +133,7 @@ public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCal
                 Intent intent_new = new Intent(MapsRouteActivity.this, CommentsActivity.class);
                 intent_new.putExtra("comment", msg);
                 //Intent intent = new Intent(StartActivity.this, RouteListActivity.class);
-                startActivity(intent);
-
-                String[] split = msg.split("\t");
-                String routeID = split[1];
-                int commentID = Integer.parseInt(split[2]);
-                String comment = split[3];
+                startActivity(intent_new);
             }
         }
     };
@@ -135,7 +144,7 @@ public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCal
         String routeID = marker.getTitle();
 
         //comments request by user: "comment request" \t Route BusID \t userID
-        sendMessage("comment request\tmarker.getTitle()\tuserID");
+        sendMessage("comment request\t" + marker.getTitle() + "\tuserID");
 
         Toast.makeText(MapsRouteActivity.this, marker.getTitle(), Toast.LENGTH_SHORT).show();
         //Intent intent = new Intent(MapsRouteActivity.this, CommentsActivity.class);
