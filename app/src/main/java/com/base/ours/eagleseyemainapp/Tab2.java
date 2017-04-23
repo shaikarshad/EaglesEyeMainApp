@@ -10,7 +10,7 @@ import android.view.ViewGroup;
 import com.base.ours.eagleseyemainapp.R;
 
 /**
- * Created by madhu on 3/26/2017.
+ * Created by madhu on 4/19/2017.
  */
 
 public class Tab2 extends Fragment {

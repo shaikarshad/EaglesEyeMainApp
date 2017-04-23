@@ -144,7 +144,7 @@ public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCal
         String routeID = marker.getTitle();
 
         //comments request by user: "comment request" \t Route BusID \t userID
-        sendMessage("comment request\t" + marker.getTitle() + "\tuserID");
+        sendMessage("comment request\t" + marker.getTitle() + "\t" + ClientConnection.euID);
 
         Toast.makeText(MapsRouteActivity.this, marker.getTitle(), Toast.LENGTH_SHORT).show();
         //Intent intent = new Intent(MapsRouteActivity.this, CommentsActivity.class);
@@ -181,7 +181,7 @@ public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCal
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        sendMessage("register\tUserID\tDiscveryPark");
+        sendMessage("register\t" + ClientConnection.euID + "\tDiscveryPark");
 
         mMap.setOnMarkerClickListener(this);
 

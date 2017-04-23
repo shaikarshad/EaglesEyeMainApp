@@ -22,7 +22,7 @@ import java.net.URISyntaxException;
 public class ClientConnection extends MultiDexApplication {
 
     static WebSocketClient mWebSocketClient; //varvlet-blog
-
+    public static String euID = "";
     @Override
     protected void attachBaseContext(Context base) {
         super.attachBaseContext(base);
@@ -44,7 +44,7 @@ public class ClientConnection extends MultiDexApplication {
     public void connectWebSocket() {
         URI uri;
         try {
-            uri = new URI("ws://de7513a9.ngrok.io/websockets/eagleseyeserverendpoint");
+            uri = new URI("ws://fbcd3b88.ngrok.io/websockets/eagleseyeserverendpoint");
         } catch (URISyntaxException e) {
             e.printStackTrace();
             return;

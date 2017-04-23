@@ -10,11 +10,13 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 
 import com.google.android.gms.maps.GoogleMap;
 
 public class StartActivity extends AppCompatActivity {
-    GoogleMap mMap;
+
+    //GoogleMap mMap;
     private CoordinatorLayout coordinatorLayout;
 
     @Override
@@ -37,6 +39,8 @@ public class StartActivity extends AppCompatActivity {
         Button logInButton= (Button) findViewById(R.id.logInButton);
         logInButton.setOnClickListener(new View.OnClickListener(){
             public void onClick(View view){
+                EditText mEdit = (EditText) findViewById(R.id.editText1);
+                ClientConnection.euID = mEdit.getText().toString();
                 Intent intent = new Intent(StartActivity.this, MapsActivity.class);
                 //Intent intent = new Intent(StartActivity.this, RouteListActivity.class);
                 startActivity(intent);

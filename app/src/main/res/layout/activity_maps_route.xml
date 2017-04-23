@@ -11,40 +11,43 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     map:cameraZoom="13.75"
+    android:layout_above="@+id/bottom_layout"
     tools:context="com.base.ours.eagleseyemainapp.MapsRouteActivity" />
 
-    <Button
-        android:text="Get Nearest Bus Stop"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:id="@+id/button_nearby"
-        android:onClick="showNearest" />
+
 
     <TextView
         android:text="TextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:id="@+id/show_distance_time"
-        android:layout_alignRight="@+id/button_nearby"
-        android:layout_alignEnd="@+id/button_nearby" />
+        android:layout_above="@+id/bottom_layout"
+        android:layout_centerHorizontal="true"
+        android:padding="8dp"
+        android:textSize="14dp"
+        android:textColor="@android:color/black"
+        android:background="#EDEDED"
+        android:id="@+id/show_distance_time" />
 
-    <Button
-        android:text="Get Bus Schedule"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/bottom_layout"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/button_nearby"
-        android:id="@+id/button_BusSchedule"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:onClick="getBusSchedule"
-        android:layout_toRightOf="@+id/button_nearby"
-        android:layout_toEndOf="@+id/button_nearby" />
+        android:layout_alignParentBottom="true">
 
+        <Button
+            android:text="Get Nearest Bus Stop"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:id="@+id/button_nearby"
+            android:onClick="showNearest" />
+
+        <Button
+            android:text="Get Bus Schedule"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:id="@+id/button_BusSchedule"
+            android:onClick="getBusSchedule" />
+    </LinearLayout>
 </RelativeLayout>

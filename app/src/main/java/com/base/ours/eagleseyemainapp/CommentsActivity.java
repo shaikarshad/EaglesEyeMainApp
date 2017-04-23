@@ -71,7 +71,7 @@ public class CommentsActivity extends AppCompatActivity {
                 String comment = mEdit.getText().toString();
 
 
-                String id = "User";
+                String id = ClientConnection.euID;
                 String forId = String.format("%-10s", id);
 
                 comments.add(forId + ": " + comment);
