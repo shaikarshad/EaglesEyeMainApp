@@ -20,7 +20,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:onClick="displayRoutes"
-        android:text="Select Bus Route" />
+        android:text="Bus Routes" />
 
     <View
         android:id="@+id/scrollView"

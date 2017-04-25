@@ -15,8 +15,7 @@
     tools:context="com.base.ours.eagleseyemainapp.MapsRouteActivity" />
 
 
-
-    <TextView
+    <!--TextView
         android:text="TextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -26,7 +25,7 @@
         android:textSize="14dp"
         android:textColor="@android:color/black"
         android:background="#EDEDED"
-        android:id="@+id/show_distance_time" />
+        android:id="@+id/show_distance_time" /-->
 
     <LinearLayout
         android:id="@+id/bottom_layout"
@@ -35,7 +34,7 @@
         android:layout_alignParentBottom="true">
 
         <Button
-            android:text="Get Nearest Bus Stop"
+            android:text="Nearest Bus Stop"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -43,7 +42,7 @@
             android:onClick="showNearest" />
 
         <Button
-            android:text="Get Bus Schedule"
+            android:text="Bus Schedule"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"

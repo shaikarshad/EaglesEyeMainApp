@@ -59,13 +59,17 @@ import retrofit.Retrofit;
 public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCallback, OnMarkerClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private GoogleMap mMap;
-    TextView ShowDistanceDuration;
+    //TextView ShowDistanceDuration;
     Polyline line;
     private GoogleApiClient mLocationClient;
     private Bundle mBundle;
     private HashMap<String, Marker> bus_markers = new HashMap<String, Marker>(); //<route\tid,lat\tlong>
     private HashMap<String, String> bus_location = new HashMap<String, String>(); //<route\tid,lat\tlong>
     private HashMap<String, Integer> bus_fullstatus = new HashMap<String, Integer>(); //<route\tid,int>
+    private NearestDistanceHelper NDHelper = new NearestDistanceHelper();
+    public static final int BUS_NO = 0;
+    public static final int BUS_STOP_ENCODED_STR = 1;
+    int minDist = Integer.MAX_VALUE;
 
     //private Marker busMarker;
     @Override
@@ -160,7 +164,7 @@ public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCal
         super.onCreate(savedInstanceState);
         mBundle = savedInstanceState;
         setContentView(R.layout.activity_maps_route);
-        ShowDistanceDuration = (TextView) findViewById(R.id.show_distance_time);
+        //ShowDistanceDuration = (TextView) findViewById(R.id.show_distance_time);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.routeMap);
@@ -192,6 +196,7 @@ public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCal
         //mMap.addMarker(new MarkerOptions().position(center).title("Discovery Park").icon(icon));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(center));
         drawRoute();
+        drawBusStops();
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -207,6 +212,15 @@ public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCal
                 .build();
         mLocationClient.connect();
         mMap.setMyLocationEnabled(true);
+    }
+
+    private void drawBusStops() {
+        for (BusStops BsStp : BusStops.values()) {
+            mMap.addMarker(new MarkerOptions().
+                    position(new LatLng(BsStp.getBsLat(), BsStp.getBsLon())).
+                    title(BsStp.getName()).
+                    icon(BitmapDescriptorFactory.fromResource(R.drawable.bus_stop_colored)));
+        }
     }
 
     private void drawRoute() {
@@ -421,36 +435,48 @@ public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCal
             return;
         }
         Location currentLocation = LocationServices.FusedLocationApi.getLastLocation(mLocationClient);
-        final int shortstDist;
+
         boolean shortstDistanceSet = false;
+        //final int maxDist=0;
         for (final BusStops BsStp : BusStops.values()) {
             LatLng origin = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
             LatLng dest = new LatLng(BsStp.getBsLat(), BsStp.getBsLon());
             Call<Example> call = service.getDistanceDuration("metric", origin.latitude + "," + origin.longitude, dest.latitude + "," + dest.longitude, "walking");
 
             call.enqueue(new Callback<Example>() {
+
                 @Override
                 public void onResponse(Response<Example> response, Retrofit retrofit) {
                     try {
-                        //Remove previous line from map
-                        if (line != null) {
-                            line.remove();
-                        }
+
                         //Log.d("response received",response.body().toString());
                         Log.d("Performing retrfit for:", BsStp.getName());
                         // This loop will go through all the results and add marker on each location.
                         for (int i = 0; i < response.body().getRoutes().size(); i++) {
                             String distance = response.body().getRoutes().get(i).getLegs().get(i).getDistance().getText();
+                            int distanceVal = response.body().getRoutes().get(i).getLegs().get(i).getDistance().getValue();
                             String time = response.body().getRoutes().get(i).getLegs().get(i).getDuration().getText();
-                            ShowDistanceDuration.setText("Distance:" + distance + ", Duration:" + time);
+                            //ShowDistanceDuration.setText("Distance:" + distance + ", Duration:" + time);
                             String encodedString = response.body().getRoutes().get(0).getOverviewPolyline().getPoints();
-                            List<LatLng> list = decodePoly(encodedString);
-                            line = mMap.addPolyline(new PolylineOptions()
-                                    .addAll(list)
-                                    .width(20)
-                                    .color(Color.RED)
-                                    .geodesic(true)
-                            );
+                            //Log.d("at line 450","at line 450");
+                            //NDHelper.addDetls(BsStp.getSNO(),String.valueOf(distanceVal),encodedString);
+                            Log.d("at line 456 min value", String.valueOf(minDist));
+                            Log.d("at line 457 currValue", String.valueOf(distanceVal));
+
+                            if (distanceVal <= minDist) {
+                                minDist = distanceVal;
+                                List<LatLng> list = decodePoly(encodedString);
+                                //Remove previous line from map
+                                if (line != null) {
+                                    line.remove();
+                                }
+                                line = mMap.addPolyline(new PolylineOptions()
+                                        .addAll(list)
+                                        .width(10)
+                                        .color(Color.GREEN)
+                                        .geodesic(true)
+                                );
+                            }
 
                         }
                     } catch (Exception e) {
@@ -465,6 +491,15 @@ public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCal
                 }
             });
         }
+//        List<String> bsNoDistEncStrDetl=NDHelper.getMaxDetls();
+//        List<LatLng> list = decodePoly(bsNoDistEncStrDetl.get(BUS_STOP_ENCODED_STR));
+//        line = mMap.addPolyline(new PolylineOptions()
+//                .addAll(list)
+//                .width(10)
+//                .color(Color.GREEN)
+//                .geodesic(true)
+//        );
+
     }
 
     private List<LatLng> decodePoly(String encoded) {
