@@ -15,8 +15,7 @@
     tools:context="com.base.ours.eagleseyemainapp.MapsRouteActivity" />
 
 
-    <!--TextView
-        android:text="TextView"
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@+id/bottom_layout"
@@ -25,7 +24,7 @@
         android:textSize="14dp"
         android:textColor="@android:color/black"
         android:background="#EDEDED"
-        android:id="@+id/show_distance_time" /-->
+        android:id="@+id/show_distance_time" />
 
     <LinearLayout
         android:id="@+id/bottom_layout"

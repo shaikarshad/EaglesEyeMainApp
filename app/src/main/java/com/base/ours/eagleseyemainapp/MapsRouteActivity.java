@@ -59,7 +59,7 @@ import retrofit.Retrofit;
 public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCallback, OnMarkerClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private GoogleMap mMap;
-    //TextView ShowDistanceDuration;
+    TextView ShowDistanceDuration;
     Polyline line;
     private GoogleApiClient mLocationClient;
     private Bundle mBundle;
@@ -164,7 +164,8 @@ public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCal
         super.onCreate(savedInstanceState);
         mBundle = savedInstanceState;
         setContentView(R.layout.activity_maps_route);
-        //ShowDistanceDuration = (TextView) findViewById(R.id.show_distance_time);
+        ShowDistanceDuration = (TextView) findViewById(R.id.show_distance_time);
+        ShowDistanceDuration.setEnabled(false);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.routeMap);
@@ -219,7 +220,7 @@ public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCal
             mMap.addMarker(new MarkerOptions().
                     position(new LatLng(BsStp.getBsLat(), BsStp.getBsLon())).
                     title(BsStp.getName()).
-                    icon(BitmapDescriptorFactory.fromResource(R.drawable.bus_stop_colored)));
+                    icon(BitmapDescriptorFactory.fromResource(R.drawable.bus_stop_icon)));
         }
     }
 
@@ -243,7 +244,9 @@ public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCal
                 .add(new LatLng(33.213709, -97.152900))
                 .add(new LatLng(33.213681, -97.148441))
                 .add(new LatLng(33.215706, -97.148411))
-                .add(new LatLng(33.215819, -97.161374));
+                .add(new LatLng(33.215819, -97.161374))
+                .width(7)
+                .color(Color.DKGRAY);
         mMap.addPolyline(polyLine);
     }
 
@@ -470,10 +473,12 @@ public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCal
                                 if (line != null) {
                                     line.remove();
                                 }
+                                ShowDistanceDuration.setEnabled(true);
+                                ShowDistanceDuration.setText("Distance:" + distance + ", Duration:" + time);
                                 line = mMap.addPolyline(new PolylineOptions()
                                         .addAll(list)
-                                        .width(10)
-                                        .color(Color.GREEN)
+                                        .width(5)
+                                        .color(R.color.colorUntGreen)
                                         .geodesic(true)
                                 );
                             }
