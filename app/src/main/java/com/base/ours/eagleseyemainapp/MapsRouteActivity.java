@@ -144,19 +144,20 @@ public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCal
 
     @Override
     public boolean onMarkerClick(final Marker marker) {
+        if (bus_markers.values().contains(marker)) {
+            String routeID = marker.getTitle();
 
-        String routeID = marker.getTitle();
+            //comments request by user: "comment request" \t Route BusID \t userID
+            sendMessage("comment request\t" + marker.getTitle() + "\t" + ClientConnection.euID);
 
-        //comments request by user: "comment request" \t Route BusID \t userID
-        sendMessage("comment request\t" + marker.getTitle() + "\t" + ClientConnection.euID);
-
-        Toast.makeText(MapsRouteActivity.this, marker.getTitle(), Toast.LENGTH_SHORT).show();
-        //Intent intent = new Intent(MapsRouteActivity.this, CommentsActivity.class);
-        //intent.putExtra("comment","hi\thello\tabc\thello123");
-        //Intent intent = new Intent(StartActivity.this, RouteListActivity.class);
-        //startActivity(intent);
-
+            //    Toast.makeText(MapsRouteActivity.this, marker.getTitle(), Toast.LENGTH_SHORT).show();
+            //Intent intent = new Intent(MapsRouteActivity.this, CommentsActivity.class);
+            //intent.putExtra("comment","hi\thello\tabc\thello123");
+            //Intent intent = new Intent(StartActivity.this, RouteListActivity.class);
+            //startActivity(intent);
+        }
         return true;
+
     }
 
     @Override
@@ -250,171 +251,6 @@ public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCal
         mMap.addPolyline(polyLine);
     }
 
-    /*
-
-    public void showNearest(View v) {
-        LatLng origin = new LatLng(33.207513, -97.152730);
-        LatLng dest = new LatLng(33.215819, -97.161374);
-        String url = getUrl(origin, dest);
-        FetchUrl FetchUrl = new FetchUrl();
-        FetchUrl.execute(url);
-    }
-
-    private String getUrl(LatLng origin, LatLng dest) {
-
-        String str_origin = "origin=" + origin.latitude + "," + origin.longitude;
-        String str_dest = "destination=" + dest.latitude + "," + dest.longitude;
-        String sensor = "sensor=false";
-        String parameters = str_origin + "&" + str_dest + "&" + sensor;
-        String output = "json";
-        String url = "https://maps.googleapis.com/maps/api/directions/" + output + "?" + parameters;
-
-        return url;
-    }
-
-
-    private class FetchUrl extends AsyncTask<String, Void, String> {
-
-        @Override
-        protected String doInBackground(String... url) {
-
-            // For storing data from web service
-            String data = "";
-
-            try {
-                // Fetching the data from web service
-                data = downloadUrl(url[0]);
-                Log.d("Background Task data", data.toString());
-            } catch (Exception e) {
-                Log.d("Background Task", e.toString());
-            }
-            return data;
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-            super.onPostExecute(result);
-
-            ParserTask parserTask = new ParserTask();
-
-            // Invokes the thread for parsing the JSON data
-            parserTask.execute(result);
-
-        }
-    }
-
-    private String downloadUrl(String strUrl) throws IOException {
-        String data = "";
-        InputStream iStream = null;
-        HttpURLConnection urlConnection = null;
-        try {
-            URL url = new URL(strUrl);
-
-            // Creating an http connection to communicate with url
-            urlConnection = (HttpURLConnection) url.openConnection();
-
-            // Connecting to url
-            urlConnection.connect();
-
-            // Reading data from url
-            iStream = urlConnection.getInputStream();
-
-            BufferedReader br = new BufferedReader(new InputStreamReader(iStream));
-
-            StringBuffer sb = new StringBuffer();
-
-            String line = "";
-            while ((line = br.readLine()) != null) {
-                sb.append(line);
-            }
-
-            data = sb.toString();
-            Log.d("downloadUrl", data.toString());
-            br.close();
-
-        } catch (Exception e) {
-            Log.d("Exception", e.toString());
-        } finally {
-            iStream.close();
-            urlConnection.disconnect();
-        }
-        return data;
-    }
-
-    /**
-     * A class to parse the Google Places in JSON format
-     */ /*
-    private class ParserTask extends AsyncTask<String, Integer, List<List<HashMap<String, String>>>> {
-
-        // Parsing the data in non-ui thread
-        @Override
-        protected List<List<HashMap<String, String>>> doInBackground(String... jsonData) {
-
-            JSONObject jObject;
-            List<List<HashMap<String, String>>> routes = null;
-
-            try {
-                jObject = new JSONObject(jsonData[0]);
-                Log.d("ParserTask", jsonData[0].toString());
-                DataParser parser = new DataParser();
-                Log.d("ParserTask", parser.toString());
-
-                // Starts parsing data
-                routes = parser.parse(jObject);
-                Log.d("ParserTask", "Executing routes");
-                Log.d("ParserTask", routes.toString());
-
-            } catch (Exception e) {
-                Log.d("ParserTask", e.toString());
-                e.printStackTrace();
-            }
-            return routes;
-        }
-
-        // Executes in UI thread, after the parsing process
-        @Override
-        protected void onPostExecute(List<List<HashMap<String, String>>> result) {
-            ArrayList<LatLng> points;
-            PolylineOptions lineOptions = null;
-
-            // Traversing through all the routes
-            for (int i = 0; i < result.size(); i++) {
-                points = new ArrayList<>();
-                lineOptions = new PolylineOptions();
-
-                // Fetching i-th route
-                List<HashMap<String, String>> path = result.get(i);
-
-                // Fetching all the points in i-th route
-                for (int j = 0; j < path.size(); j++) {
-                    HashMap<String, String> point = path.get(j);
-
-                    double lat = Double.parseDouble(point.get("lat"));
-                    double lng = Double.parseDouble(point.get("lng"));
-                    LatLng position = new LatLng(lat, lng);
-
-                    points.add(position);
-                }
-
-                // Adding all the points in the route to LineOptions
-                lineOptions.addAll(points);
-                lineOptions.width(10);
-                lineOptions.color(Color.RED);
-
-                Log.d("onPostExecute", "onPostExecute lineoptions decoded");
-
-            }
-
-            // Drawing polyline in the Google Map for the i-th route
-            if (lineOptions != null) {
-                mMap.addPolyline(lineOptions);
-            } else {
-                Log.d("onPostExecute", "without Polylines drawn");
-            }
-        }
-    }
-    */
-
     public void showNearest(View v) {
         //LatLng origin = new LatLng(33.207513, -97.152730);
         //LatLng dest = new LatLng(33.215819, -97.161374);
@@ -496,14 +332,6 @@ public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCal
                 }
             });
         }
-//        List<String> bsNoDistEncStrDetl=NDHelper.getMaxDetls();
-//        List<LatLng> list = decodePoly(bsNoDistEncStrDetl.get(BUS_STOP_ENCODED_STR));
-//        line = mMap.addPolyline(new PolylineOptions()
-//                .addAll(list)
-//                .width(10)
-//                .color(Color.GREEN)
-//                .geodesic(true)
-//        );
 
     }
 
