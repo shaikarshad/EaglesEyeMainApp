@@ -1,10 +1,17 @@
 package com.base.ours.eagleseyemainapp;
 
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Build;
+import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -32,6 +39,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private GoogleMap mMap;
     private PopupWindow popupWindow;
+    MapsHelper mpHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,6 +111,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         }
     }
+
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
@@ -142,7 +151,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             //Not in api-23, no need to prompt
             mMap.setMyLocationEnabled(true);
         }
+        mpHelper = new MapsHelper();
+
+        mMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
+            @Override
+            public boolean onMyLocationButtonClick() {
+                mpHelper.displayPopup(MapsActivity.this);
+                return false;
+            }
+        });
+
     }
+
+
+    /**
+     * Created by USR on 4/28/2017.
+     */
 
     private PopupWindow popupWindowsort() {
 
@@ -233,3 +257,4 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
 }
+

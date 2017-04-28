@@ -70,6 +70,8 @@ public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCal
     public static final int BUS_NO = 0;
     public static final int BUS_STOP_ENCODED_STR = 1;
     int minDist = Integer.MAX_VALUE;
+    MapsHelper mpHelper = new MapsHelper();
+    ;
 
     //private Marker busMarker;
     @Override
@@ -214,6 +216,14 @@ public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCal
                 .build();
         mLocationClient.connect();
         mMap.setMyLocationEnabled(true);
+
+        mMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
+            @Override
+            public boolean onMyLocationButtonClick() {
+                mpHelper.displayPopup(MapsRouteActivity.this);
+                return false;
+            }
+        });
     }
 
     private void drawBusStops() {
@@ -273,64 +283,67 @@ public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCal
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
-        Location currentLocation = LocationServices.FusedLocationApi.getLastLocation(mLocationClient);
 
         boolean shortstDistanceSet = false;
-        //final int maxDist=0;
-        for (final BusStops BsStp : BusStops.values()) {
-            LatLng origin = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-            LatLng dest = new LatLng(BsStp.getBsLat(), BsStp.getBsLon());
-            Call<Example> call = service.getDistanceDuration("metric", origin.latitude + "," + origin.longitude, dest.latitude + "," + dest.longitude, "walking");
+        Location currentLocation = LocationServices.FusedLocationApi.getLastLocation(mLocationClient);
+        if (currentLocation == null) {
+            mpHelper.displayPopup(MapsRouteActivity.this);
+        } else {
+            for (final BusStops BsStp : BusStops.values()) {
+                LatLng origin = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+                LatLng dest = new LatLng(BsStp.getBsLat(), BsStp.getBsLon());
+                Call<Example> call = service.getDistanceDuration("metric", origin.latitude + "," + origin.longitude, dest.latitude + "," + dest.longitude, "walking");
 
-            call.enqueue(new Callback<Example>() {
+                call.enqueue(new Callback<Example>() {
 
-                @Override
-                public void onResponse(Response<Example> response, Retrofit retrofit) {
-                    try {
+                    @Override
+                    public void onResponse(Response<Example> response, Retrofit retrofit) {
+                        try {
 
-                        //Log.d("response received",response.body().toString());
-                        Log.d("Performing retrfit for:", BsStp.getName());
-                        // This loop will go through all the results and add marker on each location.
-                        for (int i = 0; i < response.body().getRoutes().size(); i++) {
-                            String distance = response.body().getRoutes().get(i).getLegs().get(i).getDistance().getText();
-                            int distanceVal = response.body().getRoutes().get(i).getLegs().get(i).getDistance().getValue();
-                            String time = response.body().getRoutes().get(i).getLegs().get(i).getDuration().getText();
-                            //ShowDistanceDuration.setText("Distance:" + distance + ", Duration:" + time);
-                            String encodedString = response.body().getRoutes().get(0).getOverviewPolyline().getPoints();
-                            //Log.d("at line 450","at line 450");
-                            //NDHelper.addDetls(BsStp.getSNO(),String.valueOf(distanceVal),encodedString);
-                            Log.d("at line 456 min value", String.valueOf(minDist));
-                            Log.d("at line 457 currValue", String.valueOf(distanceVal));
+                            //Log.d("response received",response.body().toString());
+                            Log.d("Performing retrfit for:", BsStp.getName());
+                            // This loop will go through all the results and add marker on each location.
+                            for (int i = 0; i < response.body().getRoutes().size(); i++) {
+                                String distance = response.body().getRoutes().get(i).getLegs().get(i).getDistance().getText();
+                                int distanceVal = response.body().getRoutes().get(i).getLegs().get(i).getDistance().getValue();
+                                String time = response.body().getRoutes().get(i).getLegs().get(i).getDuration().getText();
+                                //ShowDistanceDuration.setText("Distance:" + distance + ", Duration:" + time);
+                                String encodedString = response.body().getRoutes().get(0).getOverviewPolyline().getPoints();
+                                //Log.d("at line 450","at line 450");
+                                //NDHelper.addDetls(BsStp.getSNO(),String.valueOf(distanceVal),encodedString);
+                                Log.d("at line 456 min value", String.valueOf(minDist));
+                                Log.d("at line 457 currValue", String.valueOf(distanceVal));
 
-                            if (distanceVal <= minDist) {
-                                minDist = distanceVal;
-                                List<LatLng> list = decodePoly(encodedString);
-                                //Remove previous line from map
-                                if (line != null) {
-                                    line.remove();
+                                if (distanceVal <= minDist) {
+                                    minDist = distanceVal;
+                                    List<LatLng> list = decodePoly(encodedString);
+                                    //Remove previous line from map
+                                    if (line != null) {
+                                        line.remove();
+                                    }
+                                    ShowDistanceDuration.setEnabled(true);
+                                    ShowDistanceDuration.setText("Distance:" + distance + ", Duration:" + time);
+                                    line = mMap.addPolyline(new PolylineOptions()
+                                            .addAll(list)
+                                            .width(5)
+                                            .color(R.color.colorUntGreen)
+                                            .geodesic(true)
+                                    );
                                 }
-                                ShowDistanceDuration.setEnabled(true);
-                                ShowDistanceDuration.setText("Distance:" + distance + ", Duration:" + time);
-                                line = mMap.addPolyline(new PolylineOptions()
-                                        .addAll(list)
-                                        .width(5)
-                                        .color(R.color.colorUntGreen)
-                                        .geodesic(true)
-                                );
+
                             }
-
+                        } catch (Exception e) {
+                            Log.d("onResponse", "There is an error");
+                            e.printStackTrace();
                         }
-                    } catch (Exception e) {
-                        Log.d("onResponse", "There is an error");
-                        e.printStackTrace();
                     }
-                }
 
-                @Override
-                public void onFailure(Throwable t) {
-                    Log.d("onFailure", t.toString());
-                }
-            });
+                    @Override
+                    public void onFailure(Throwable t) {
+                        Log.d("onFailure", t.toString());
+                    }
+                });
+            }
         }
 
     }
