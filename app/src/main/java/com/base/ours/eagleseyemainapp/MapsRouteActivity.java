@@ -45,6 +45,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -304,7 +305,8 @@ public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCal
                             Log.d("Performing retrfit for:", BsStp.getName());
                             // This loop will go through all the results and add marker on each location.
                             for (int i = 0; i < response.body().getRoutes().size(); i++) {
-                                String distance = response.body().getRoutes().get(i).getLegs().get(i).getDistance().getText();
+                                int distance = response.body().getRoutes().get(i).getLegs().get(i).getDistance().getValue();
+                                double distMiles = distance * 0.62 / 1000;
                                 int distanceVal = response.body().getRoutes().get(i).getLegs().get(i).getDistance().getValue();
                                 String time = response.body().getRoutes().get(i).getLegs().get(i).getDuration().getText();
                                 //ShowDistanceDuration.setText("Distance:" + distance + ", Duration:" + time);
@@ -322,7 +324,7 @@ public class MapsRouteActivity extends FragmentActivity implements OnMapReadyCal
                                         line.remove();
                                     }
                                     ShowDistanceDuration.setEnabled(true);
-                                    ShowDistanceDuration.setText("Distance:" + distance + ", Duration:" + time);
+                                    ShowDistanceDuration.setText("Distance:" + (new DecimalFormat("##.##").format(distMiles)) + " mile, Duration:" + time);
                                     line = mMap.addPolyline(new PolylineOptions()
                                             .addAll(list)
                                             .width(5)
